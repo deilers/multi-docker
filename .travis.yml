@@ -1,0 +1,21 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t deilers/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true deilers/react-test npm test
+
+after_success:
+    - docker build -t deilers/multi-client ./client
+    - docker build -t deilers/multi-nginx ./nginx
+    - docker build -t deilers/multi-server ./server
+    - docker build -t deilers/multi-worker ./worker
+    # log into docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push deilers/multi-client
+    - docker push deilers/multi-nginx
+    - docker push deilers/multi-server
+    - docker push deilers/multi-worker
